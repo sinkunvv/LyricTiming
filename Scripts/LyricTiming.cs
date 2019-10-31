@@ -19,8 +19,10 @@ public class LyricTiming : MonoBehaviour
     GUIStyle style;
     GUIStyleState styleState;
 
+    // 初期化
     void Start()
     {
+        // Viewモードじゃなければ
         if (!ViewMode)
         {
             EditorApplication.playModeStateChanged += OnChangedPlayMode;
@@ -55,15 +57,14 @@ public class LyricTiming : MonoBehaviour
         animator.enabled = true;
     }
 
-    // 
+    // Update
     void Update()
     {
         audioTime += Time.deltaTime;
-
         DownKeyCheck();
-
     }
 
+    // Editor終了イベント
     void OnChangedPlayMode(PlayModeStateChange state)
     {
         if (state == PlayModeStateChange.EnteredEditMode && !ViewMode)
@@ -72,6 +73,30 @@ public class LyricTiming : MonoBehaviour
         }
     }
 
+    // Game画面に表示
+    void OnGUI()
+    {
+        GUI.Label(new Rect(10, 0, 250, 30), audioSource.time.ToString() + "s");
+
+
+        if (Targets.Length > 0 && !ViewMode)
+        {
+            GUI.Label(new Rect(10, 30, 500, 30), "【AnimationClipに書き込めないオブジェクトは赤色で表示しています】", style);
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                if (isTargets[i])
+                {
+                    GUI.Label(new Rect(10, 30 * (i + 2), 250, 20), i + 1 + ":" + Targets[i].name);
+                }
+                else
+                {
+                    GUI.Label(new Rect(10, 30 * (i + 2), 250, 20), i + 1 + ":" + Targets[i].name, style);
+                }
+            }
+        }
+    }
+
+    #region Functions
     // AnimationClip保存
     void SaveAnimeClip()
     {
@@ -150,9 +175,9 @@ public class LyricTiming : MonoBehaviour
         }
     }
 
+    // KeyFrameを格納
     void SetKeyFrame(int i)
     {
-        Debug.Log(i);
         // Start KeyFrame Constant
         if (i < Targets.Length && !ViewMode)
         {
@@ -201,27 +226,5 @@ public class LyricTiming : MonoBehaviour
 
         }
     }
-
-    // Game画面に表示
-    void OnGUI()
-    {
-        GUI.Label(new Rect(10, 0, 250, 30), audioSource.time.ToString() +"s");
-        
-
-        if (Targets.Length > 0 && !ViewMode)
-        {
-            GUI.Label(new Rect(10, 30, 500, 30), "【AnimationClipに書き込めないオブジェクトは赤色で表示しています】", style);
-            for (var i = 0; i < Targets.Length; i++)
-            {
-                if (isTargets[i])
-                {
-                    GUI.Label(new Rect(10, 30 * (i + 2), 250, 20), i + 1 + ":" + Targets[i].name);
-                }
-                else
-                {
-                    GUI.Label(new Rect(10, 30 * (i + 2), 250, 20), i + 1 + ":" + Targets[i].name, style);
-                }
-            }
-        }
-    }
+    #endregion
 }
