@@ -22,7 +22,7 @@ UnityEditorでAudioSourceをを再生しながら
 * スクリプトのInspectorに必要な要素をアタッチする
     * Anim Clip    (Animatorに紐付いているもの)
     * Audio Source (再生する音源)
-    * Targets      (アニメーションを打ち込むオブジェクト)
+    * Targets      (アニメーションを打ち込む対象オブジェクト)
 
 * AudioTimeで再生開始の秒数を指定可能
 * UnityEditorの再生ボタンを押下する
