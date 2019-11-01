@@ -23,32 +23,6 @@ public class LyricTiming : MonoBehaviour
     // 初期化
     void Start()
     {
-        // Viewモードじゃなければ
-        if (!ViewMode)
-        {
-            EditorApplication.playModeStateChanged += OnChangedPlayMode;
-            keys = new Dictionary<string, List<Keyframe>>();
-            foreach (var lyric in Targets)
-            {
-                keys.Add(lyric.name, new List<Keyframe>());
-                keys[lyric.name].Add(new Keyframe(0.0f, 0.0f, float.PositiveInfinity, float.NegativeInfinity));
-                lyric.gameObject.SetActive(false);
-            }
-
-            // 存在するオブジェクトは対象外とする
-            ExistsProparty();
-
-            // GUIスタイル
-            style = new GUIStyle();
-            styleState = new GUIStyleState();
-            styleState.textColor = Color.red;
-            style.normal = styleState;
-        }
-    }
-
-    // Inspector変更時初期化
-    void OnValidate()
-    {
         Lyric = GetComponent<Transform>();
         audioSource.time = audioTime;
 
@@ -57,6 +31,31 @@ public class LyricTiming : MonoBehaviour
             var info = animator.GetCurrentAnimatorStateInfo(0);
             animator.Play(info.fullPathHash, 0, audioTime / info.length);
             animator.enabled = true;
+        }
+
+        // Viewモードじゃなければ
+        if (!ViewMode)
+        {
+            EditorApplication.playModeStateChanged += OnChangedPlayMode;
+            keys = new Dictionary<string, List<Keyframe>>();
+            isTargets = new bool[Targets.Length];
+
+            for (var i = 0; i < Targets.Length; i++)
+            {
+                keys.Add(Targets[i].name, new List<Keyframe>());
+                // 存在するオブジェクトは対象外とする
+                ExistsProparty(i);
+                if (isTargets[i])
+                {
+                    Targets[i].gameObject.SetActive(false);
+                }
+            }
+
+            // GUIスタイル
+            style = new GUIStyle();
+            styleState = new GUIStyleState();
+            styleState.textColor = Color.red;
+            style.normal = styleState;
         }
     }
 
@@ -79,8 +78,7 @@ public class LyricTiming : MonoBehaviour
     // Game画面に表示
     void OnGUI()
     {
-        GUI.Label(new Rect(10, 0, 250, 30), audioSource.time.ToString() + "s");
-
+        GUI.Label(new Rect(10, 0, 250, 30), audioSource.time.ToString("N2") + "s");
 
         if (Targets.Length > 0 && !ViewMode)
         {
@@ -114,12 +112,13 @@ public class LyricTiming : MonoBehaviour
         {
             if (isTargets[i])
             {
-                // 最終フレーム DisableでKeyFrame追加
+                // 0フレーム,最終フレーム DisableでKeyFrame追加
+                keys[Targets[i].name].Add(new Keyframe(0.0f, 0.0f, float.PositiveInfinity, float.NegativeInfinity));
                 keys[Targets[i].name].Add(new Keyframe(audioSource.clip.length, 0.0f, float.PositiveInfinity, float.NegativeInfinity));
 
                 // Binging
                 EditorCurveBinding curveBinding = new EditorCurveBinding();
-                curveBinding.path = GethierarchyPath(Targets[i]);
+                curveBinding.path = GetHierarchyPath(Targets[i]);
                 curveBinding.type = typeof(GameObject);
                 curveBinding.propertyName = "m_IsActive";
 
@@ -194,7 +193,7 @@ public class LyricTiming : MonoBehaviour
 
 
     // 親オブジェクトからのパスを取得
-    string GethierarchyPath(GameObject target)
+    string GetHierarchyPath(GameObject target)
     {
         Transform _target = target.transform.parent;
         Transform _parent = Lyric;
@@ -210,26 +209,21 @@ public class LyricTiming : MonoBehaviour
     }
 
     // AnimationPropartyの存在チェック
-    void ExistsProparty()
+    void ExistsProparty(int i)
     {
-        isTargets = new bool[Targets.Length];
-        for (var i = 0; i < Targets.Length; i++)
+        isTargets[i] = true;
+        // 既存のAnimationCurve検索
+        if (animClip)
         {
-            isTargets[i] = true;
-            // 既存のAnimationCurve検索
-            if (animClip)
+            foreach (var binding in AnimationUtility.GetCurveBindings(animClip))
             {
-                foreach (var binding in AnimationUtility.GetCurveBindings(animClip))
+                if (binding.path == GetHierarchyPath(Targets[i]))
                 {
-                    if (binding.path == GethierarchyPath(Targets[i]))
-                    {
-                        isTargets[i] = false;
-                        Targets[i].SetActive(true);
-                        break;
-                    }
+                    isTargets[i] = false;
+                    Targets[i].SetActive(true);
+                    break;
                 }
             }
-
         }
     }
     #endregion
