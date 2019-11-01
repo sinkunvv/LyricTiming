@@ -9,9 +9,10 @@ public class LyricTiming : MonoBehaviour
     public AnimationClip animClip;
     public AudioSource audioSource;
     public float audioTime;
+    public Animator[] animators;
     public GameObject[] Targets;
 
-    Animator animator;
+    
     Transform Lyric;
     bool[] isTargets;
     Dictionary<string, List<Keyframe>> keys;
@@ -49,12 +50,14 @@ public class LyricTiming : MonoBehaviour
     void OnValidate()
     {
         Lyric = GetComponent<Transform>();
-        animator = GetComponent<Animator>();
-
-        var info = animator.GetCurrentAnimatorStateInfo(0);
         audioSource.time = audioTime;
-        animator.Play(info.fullPathHash, 0, audioTime / info.length);
-        animator.enabled = true;
+
+        foreach (var animator in animators)
+        {
+            var info = animator.GetCurrentAnimatorStateInfo(0);
+            animator.Play(info.fullPathHash, 0, audioTime / info.length);
+            animator.enabled = true;
+        }
     }
 
     // Update
@@ -109,20 +112,23 @@ public class LyricTiming : MonoBehaviour
 
         for (var i = 0; i < Targets.Length; i++)
         {
-            // 最終フレーム DisableでKeyFrame追加
-            keys[Targets[i].name].Add(new Keyframe(audioSource.clip.length, 0.0f, float.PositiveInfinity, float.NegativeInfinity));
+            if (isTargets[i])
+            {
+                // 最終フレーム DisableでKeyFrame追加
+                keys[Targets[i].name].Add(new Keyframe(audioSource.clip.length, 0.0f, float.PositiveInfinity, float.NegativeInfinity));
 
-            // Binging
-            EditorCurveBinding curveBinding = new EditorCurveBinding();
-            curveBinding.path = GethierarchyPath(Targets[i]);
-            curveBinding.type = typeof(GameObject);
-            curveBinding.propertyName = "m_IsActive";
+                // Binging
+                EditorCurveBinding curveBinding = new EditorCurveBinding();
+                curveBinding.path = GethierarchyPath(Targets[i]);
+                curveBinding.type = typeof(GameObject);
+                curveBinding.propertyName = "m_IsActive";
 
-            // AnimationCurve 登録したKeyFramesで初期化
-            AnimationCurve curve = new AnimationCurve(keys[Targets[i].name].ToArray());
+                // AnimationCurve 登録したKeyFramesで初期化
+                AnimationCurve curve = new AnimationCurve(keys[Targets[i].name].ToArray());
 
-            // AnimationCurve保存
-            AnimationUtility.SetEditorCurve(animClip, curveBinding, curve);
+                // AnimationCurve保存
+                AnimationUtility.SetEditorCurve(animClip, curveBinding, curve);
+            }
         }
 
         Debug.Log("アニメーション保存..!");

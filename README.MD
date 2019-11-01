@@ -24,11 +24,13 @@ UnityEditorでAudioSourceをを再生しながら
 * スクリプトのInspectorに必要な要素をアタッチする
     * Anim Clip    (Animatorに紐付いているもの)
     * Audio Source (再生する音源)
-    * Targets      (アニメーションを打ち込む対象オブジェクト)
+    * Animators    (再生タイミングを音源と合わせるAnimator郡)
+    * Targets      (アニメーションを打ち込む対象オブジェクト郡) **最大10個**
 
 * AudioTimeで再生開始の秒数を指定可能
 * UnityEditorの再生ボタンを押下する
 * 再生された音源にあわせGameタブに表示されている数字キーを押下する
+    * 対応キーはキーボード上の数字キー( 1 ~ 0 )まで **最大10個**
     * 赤字表示のものはすでにAnimationClipに登録されているため新規追加は不可
 * 任意のタイミングでUnityEditorの停止ボタンを押下する
 * 再生が停止されたタイミングでAnimationClipが更新される
@@ -41,7 +43,7 @@ UnityEditorでAudioSourceをを再生しながら
 * 再生と同時に対象の子オブジェクトは非アクティブとなる
 * 生成されるAnimationClipには必ず0フレーム目と音源の最終フレームに非アクティブとなるキーが追加される
 * バックアップで生成されるAnimationClipは元のAnimationClipと同じディレクトリに現在時刻が付与された名前で生成される
-
+* Animatorsは複数指定可能　実際の演出タイミングを複数のアニメーションでコントロールできる
 
 ## オブジェクトのヒエラルキー例
 ```
